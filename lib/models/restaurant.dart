@@ -11,6 +11,9 @@ class Restaurant extends ChangeNotifier {
   // danh sách menu đồ ăn
   List<Food> _menu = [];
 
+  // tìm kiếm
+  List<Food> _suggestions = [];
+
   // giỏ hàng người dùng
   List<CartItem> _cart = [];
 
@@ -20,6 +23,7 @@ class Restaurant extends ChangeNotifier {
   // người nhận
 
   List<Food> get menu => _menu;
+  List<Food> get suggestions => _suggestions;
   List<CartItem> get cart => _cart;
   String get deliveryAddress => _deliveryAddress;
 
@@ -260,5 +264,64 @@ class Restaurant extends ChangeNotifier {
   Future<void> init() async {
     await fetchCart(); // Gọi phương thức tải giỏ hàng
     // Nếu cần, bạn có thể gọi fetchMenu() ở đây để tải menu
+  }
+
+  // tìm kiếm đồ ăn
+  Future<List<Food>> searchFoods(String query) async {
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('food')
+          .get();
+
+      final List<Food> results =
+          snapshot.docs
+          .map((doc) {
+            Food food = Food.fromFirestore(doc);
+            return food.name.toLowerCase().contains(query.toLowerCase()) ? food : null;
+          })
+          .whereType<Food>()
+          .toList();
+
+      // Tìm kiếm theo category (nếu cần)
+      QuerySnapshot categorySnapshot = await FirebaseFirestore.instance
+          .collection('food')
+          .where('category', isEqualTo: query)
+          .get();
+
+      results.addAll(
+          categorySnapshot.docs.map((doc) => Food.fromFirestore(doc)).toList());
+
+      return results;
+    } catch (e) {
+      print("Error searching foods: $e");
+      return [];
+    }
+  }
+
+  // gợi ý tìm kiếm
+  Future<void> fetchSuggestions(String text) async {
+    try {
+      if (text.isEmpty) {
+        _suggestions.clear();
+      } else {
+        // Chuyển cả query và dữ liệu Firebase về dạng chữ thường
+        String query = text.toLowerCase();
+
+        QuerySnapshot snapshot =
+            await FirebaseFirestore.instance.collection('food').get();
+
+        // So sánh tên đồ ăn trong cơ sở dữ liệu với query đã chuyển thành chữ thường
+        _suggestions = snapshot.docs
+            .map((doc) {
+              Food food = Food.fromFirestore(doc);
+              return food.name.toLowerCase().contains(query) ? food : null;
+            })
+            .whereType<Food>()
+            .toList();
+      }
+      notifyListeners();
+    } catch (e) {
+      print("Error fetching suggestions: $e");
+    }
   }
 }
