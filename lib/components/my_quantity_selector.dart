@@ -28,7 +28,7 @@ class MyQuantitySelector extends StatelessWidget {
         children: [
           // button giảm số lượng
           GestureDetector(
-            onTap: onDecrement,
+            onTap: quantity > 1 ? onDecrement : null,
             child: Icon(
               Icons.remove,
               size: 20,

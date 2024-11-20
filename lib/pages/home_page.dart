@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage>
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 50,),
+                    const SizedBox(height: 50,),
                     Consumer<Restaurant>(
                       builder: (context, restaurant, child) {
                          print("Number of suggestions: ${restaurant.suggestions.length}");
@@ -132,6 +132,7 @@ class _HomePageState extends State<HomePage>
                         );
                       },
                     ),
+                    const SizedBox(height: 40,),
                     // Divider(
                     //   indent: 25,
                     //   endIndent: 25,
